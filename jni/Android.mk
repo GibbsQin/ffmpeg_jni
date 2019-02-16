@@ -30,6 +30,7 @@ LOCAL_SRC_FILES:=decode_audio.c \
 		encode_audio.c \
 		decode_video.c \
 		encode_video.c \
+		DecodeAndEncode.c \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include \
 		include \

@@ -71,12 +71,16 @@ static int select_channel_layout(const AVCodec *codec)
     return best_ch_layout;
 }
 
-static void encode_audio(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt)
+static void encode_audio(AVFrame *frame, AVPacket *pkt)
 {
+    frame->nb_samples     = encodeAudioCxt->frame_size;
+    frame->format         = encodeAudioCxt->sample_fmt;
+    frame->channel_layout = encodeAudioCxt->channel_layout;
+
     int ret;
 
     /* send the frame for encoding */
-    ret = avcodec_send_frame(ctx, frame);
+    ret = avcodec_send_frame(encodeAudioCxt, frame);
     if (ret < 0) {
         Log("Error sending the frame to the encoder\n");
         return;
@@ -85,7 +89,7 @@ static void encode_audio(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt)
     /* read all the available output packets (in general there may be any
      * number of them */
     while (ret >= 0) {
-        ret = avcodec_receive_packet(ctx, pkt);
+        ret = avcodec_receive_packet(encodeAudioCxt, pkt);
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
             return;
         else if (ret < 0) {

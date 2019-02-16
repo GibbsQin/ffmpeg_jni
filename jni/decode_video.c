@@ -10,19 +10,19 @@
 
 AVCodecContext *decodeVideoCxt= NULL;
 
-static void decode_video(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt)
+static void decode_video(AVFrame *frame, AVPacket *pkt)
 {
     char buf[1024];
     int ret;
 
-    ret = avcodec_send_packet(dec_ctx, pkt);
+    ret = avcodec_send_packet(decodeVideoCxt, pkt);
     if (ret < 0) {
         Log("Error sending a packet for decoding\n");
         return;
     }
 
     while (ret >= 0) {
-        ret = avcodec_receive_frame(dec_ctx, frame);
+        ret = avcodec_receive_frame(decodeVideoCxt, frame);
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
             return;
         else if (ret < 0) {
@@ -30,14 +30,14 @@ static void decode_video(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt)
             return;
         }
 
-        Log("saving frame %3d\n", dec_ctx->frame_number);
+        Log("saving frame %3d\n", decodeVideoCxt->frame_number);
         fflush(stdout);
     }
 	av_frame_free(&frame);
 	av_packet_free(&pkt);
 }
 
-int decode_video_init(const char *codec_name)
+int decode_video_init()
 {
     const AVCodec *codec;
     int ret;

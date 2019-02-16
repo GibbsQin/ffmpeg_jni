@@ -15,22 +15,26 @@ AVCodecContext *encodeVideoCxt= NULL;
 AVFrame *frame;
 AVPacket *pkt;
 
-static void encode_video(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt)
+static void encode_video(AVFrame *frame, AVPacket *pkt)
 {
+	frame->format = encodeVideoCxt->pix_fmt;
+	frame->width  = encodeVideoCxt->width;
+	frame->height = encodeVideoCxt->height;
+
     int ret;
 
     /* send the frame to the encoder */
     if (frame)
         Log("Send frame %lld\n", frame->pts);
 
-    ret = avcodec_send_frame(enc_ctx, frame);
+    ret = avcodec_send_frame(encodeVideoCxt, frame);
     if (ret < 0) {
         Log("Error sending a frame for encoding\n");
         return;
     }
 
     while (ret >= 0) {
-        ret = avcodec_receive_packet(enc_ctx, pkt);
+        ret = avcodec_receive_packet(encodeVideoCxt, pkt);
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
             return;
         else if (ret < 0) {
@@ -43,15 +47,15 @@ static void encode_video(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt)
     }
 }
 
-int encode_video_init(const char *codec_name)
+int encode_video_init()
 {
     const AVCodec *codec;
     int i, ret;
 
     /* find the mpeg1video encoder */
-    codec = avcodec_find_encoder_by_name(codec_name);
+    codec = avcodec_find_encoder(AV_CODEC_ID_H264);
     if (!codec) {
-        Log("Codec '%s' not found\n", codec_name);
+        Log("Codec '%d' not found\n", AV_CODEC_ID_H264);
         return 1;
     }
 
